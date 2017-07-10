@@ -1,0 +1,19 @@
+{
+  "name": "<%=assemblyName%>",
+  "version": "1.0.0",
+  "description": "Scaffolds project solution after Yeoman template generation",
+  "config": {
+    "port": 3000
+  },
+  "scripts": {
+    "scaffold:ui": "cd ./src/ui && npm install && cd ../..",
+    "scaffold:api": "cd ./src/server && dotnet restore && cd ../..",
+    "scaffold:db": "cd ./src/data && dotnet ef --startup-project ../server migrations add Initial -c <%=dbContextName%> && cd ../..",
+    "start": "cd ./src/server && dotnet run -p server.csproj -c Development",
+    "preinstall": "npm run scaffold:ui && npm run scaffold:api && npm run scaffold:db" <%if(runPostInstall){%>,
+      "postinstall": "cd ./src/server && dotnet run -p server.csproj -c Development"<%
+    }%>
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

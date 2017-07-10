@@ -1,0 +1,69 @@
+@import "../styles/variables";
+
+// npm depencies
+@import "~bootstrap/scss/bootstrap";
+@import "~font-awesome/scss/font-awesome";
+
+// Project specific
+@import "../styles/global";
+@import "../styles/components";
+
+// Area specific
+@import "./styles/area";
+@import "./footer/footer";
+
+/*
+ * Sidebar
+ */
+
+$sm-map: map-get($grid-breakpoints, 'sm');
+$md-map: map-get($grid-breakpoints, 'md');
+
+.sidebar {
+  position: fixed;
+  top: 56px;
+  bottom: 0;
+  z-index: 1000;
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid #eee;
+
+  @media(max-width:$sm-map) {
+    display: none !important;
+  }
+
+  @media(min-width:$sm-map) and (max-width: $md-map) {
+    left:0;
+  }
+
+}
+
+/* Sidebar navigation */
+.sidebar {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar .nav {
+  margin-bottom: 20px;
+}
+
+.sidebar .nav-item {
+  width: 100%;
+}
+
+.sidebar .nav-item + .nav-item {
+  margin-left: 0;
+}
+
+.sidebar .nav-link {
+  border-radius: 0;
+  color: $navbar-light-color;
+  font-weight: bold;
+}
+
+.sidebar .nav-link:hover {
+  border-radius: 0;
+  color: $navbar-light-hover-color;
+}

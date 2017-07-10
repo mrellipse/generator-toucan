@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace <%=assemblyName%>.Data.Model
+{
+    public partial class UserRole
+    {
+        public UserRole()
+        {
+
+        }
+
+        public string RoleId { get; set; }
+
+        public long UserId { get; set; }
+
+        public virtual Role Role { get; set; }
+        
+        public virtual User User { get; set; }
+    }
+}

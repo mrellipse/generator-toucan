@@ -1,0 +1,15 @@
+
+@import "../../styles/variables";
+
+.custom-checkbox .custom-control-indicator {
+    border-radius: 0 !important;
+}
+
+.custom-control-input:checked~.custom-control-indicator {
+    color: #fff;
+    background-color: $brand-primary !important;
+}
+
+.custom-control-input:focus~.custom-control-indicator {
+    box-shadow: 0 0 0 0.075rem #fff, 0 0 0 0.2rem $brand-primary !important;
+}

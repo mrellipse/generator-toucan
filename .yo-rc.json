@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Jamie Webb",
+      "authorEmail": "mrellipse@gmail.com",
+      "authorUrl": "https://github.com/mrellipse"
+    }
+  }
+}

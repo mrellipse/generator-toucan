@@ -1,0 +1,24 @@
+@import "../../styles/variables";
+
+.login-provider {
+
+    .btn {
+        min-width: 4em;
+    }
+
+    .card {
+        margin-top: 0.5em;
+    }
+
+    .external-provider-text {
+        color: $brand-primary;
+        margin-left: 0.5em;
+        text-transform: lowercase;
+        font-variant: small-caps;
+        font-size: 1.4em;
+    }
+}
+
+
+
+

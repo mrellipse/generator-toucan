@@ -1,0 +1,32 @@
+﻿using System;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace <%=assemblyName%>.Server
+{
+    public static partial class Extensions
+    {
+        public static void ConfigureMvc(this IServiceCollection services, Config.AntiForgeryConfig xsrfConfig)
+        {
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(typeof(Filters.GlobalExceptionFilter));
+                options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            });
+
+            services.AddAntiforgery(options =>
+            {
+                options.CookieName = xsrfConfig.CookieName;
+                options.HeaderName = xsrfConfig.HeaderName;
+                options.RequireSsl = true;
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.ManagerUserAccounts, p => p.RequireRole(<%=assemblyName%>.Data.RoleTypes.Admin));
+                options.AddPolicy(Policies.ManageSiteSettings, p => p.RequireRole(<%=assemblyName%>.Data.RoleTypes.Admin));
+            });
+        }
+    }
+}
