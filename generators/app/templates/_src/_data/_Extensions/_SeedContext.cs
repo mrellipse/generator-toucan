@@ -7,7 +7,7 @@ namespace <%=assemblyName%>.Data
 {
     public static partial class Extensions
     {
-        private const string AdminEmail = "webmaster@<%=assemblyName%>.org";
+        private const string AdminEmail = "webmaster@<%=assemblyName.toLowerCase()%>.org";
 
         public static void EnsureSeedData(this DbContextBase db, ICryptoService crypto)
         {

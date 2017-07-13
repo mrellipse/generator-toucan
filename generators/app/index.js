@@ -216,6 +216,7 @@ module.exports = class extends Generator {
     ];
 
     let ignoreExtensions = [
+
     ];
 
     let ignoreNpgSql = [
@@ -239,7 +240,8 @@ module.exports = class extends Generator {
     }
 
     let staticResourceExtensions = [
-      '.png'
+      '.png',
+      '.ttf'
     ];
 
     let isTargetResource = (filePath) => {
