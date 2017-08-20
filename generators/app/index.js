@@ -176,7 +176,6 @@ module.exports = class extends Generator {
 
     this.writeRoot();
     this.writeSource();
-    this.writeCertificates();
   }
 
   writeRoot() {
@@ -211,13 +210,9 @@ module.exports = class extends Generator {
 
     ];
 
-    let ignoreResourcePaths = [
-      '_src\\_server\\_Resources'
-    ];
+    let ignoreResourcePaths = [];
 
-    let ignoreExtensions = [
-
-    ];
+    let ignoreExtensions = [];
 
     let ignoreNpgSql = [
       '_src\\_data\\_Context\\_NpgSqlContextFactory.cs',
@@ -309,23 +304,6 @@ module.exports = class extends Generator {
     walkSync(this.templatePath('_build'), fn);
     walkSync(this.templatePath('_test'), fn);
     walkSync(this.templatePath('_src'), fn);
-  }
-
-  writeCertificates() {
-
-    let certificates = [
-      '.cer',
-      '.pfx',
-      '.pvk'
-    ];
-
-    certificates.forEach(o => {
-      this.fs.copy(
-        this.templatePath('_src\\_server\\_Resources\\_toucan.dev' + o),
-        this.destinationPath('src\\server\\Resources\\' + this.props.assemblyName + o)
-      );
-    });
-
   }
 
   install() {

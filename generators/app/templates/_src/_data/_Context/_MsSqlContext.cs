@@ -1,12 +1,16 @@
 
 using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Configuration;
+using <%=assemblyName%>.Common.Extensions;
 using <%=assemblyName%>.Data.Model;
 
 namespace <%=assemblyName%>.Data
 {
-    public sealed class MsSqlContext : DbContextBase
+    public sealed class MsSqlContext : DbContextBase, IDesignTimeDbContextFactory<MsSqlContext>
     {
         public MsSqlContext() : base()
         {
@@ -168,6 +172,31 @@ namespace <%=assemblyName%>.Data
                     .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_UserRole_User");
             });
+        }
+
+        public MsSqlContext CreateDbContext(string[] args)
+        {
+            DirectoryInfo info = new DirectoryInfo(AppContext.BaseDirectory);
+            Console.WriteLine($"AppContext.BaseDirectory='{info.FullName}'");
+            DirectoryInfo dataProjectRoot = info.Parent.Parent.Parent.Parent;
+            string basePath = Path.Combine(dataProjectRoot.FullName, "data");
+
+            IConfigurationRoot config = new ConfigurationBuilder()
+                .SetBasePath(basePath)
+                .AddJsonFile("mssql.json")
+                .Build();
+
+            string connectionString = config.GetSection(<%=assemblyName%>.Data.Config.DbConnectionKey).Value;
+
+            var optionsBuilder = new DbContextOptionsBuilder<MsSqlContext>();
+
+            optionsBuilder.UseSqlServer(connectionString, o =>
+            {
+                string assemblyName = typeof(MsSqlContext).GetAssemblyName();
+                o.MigrationsAssembly(assemblyName);
+            });
+
+            return new MsSqlContext(optionsBuilder.Options);
         }
     }
 }

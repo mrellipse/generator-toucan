@@ -33,12 +33,12 @@ namespace <%=assemblyName%>.Server
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions()
                 {
                     HotModuleReplacement = true,
-                    ProjectPath = Path.Combine(WebApp.ContentRoot, @"..\ui")
+                    ProjectPath = Path.Combine(Directory.GetCurrentDirectory(), @"..\ui")
                 });
             }
 
             app.UseDefaultFiles();
-            app.UseTokenBasedAuthentication(cfg.Service.TokenProvider, cfg.Server.Areas);
+            app.UseAuthentication();
             app.UseAntiforgeryMiddleware(cfg.Server.AntiForgery.ClientName);
 
             app.UseStaticFiles(new StaticFileOptions()
@@ -63,6 +63,8 @@ namespace <%=assemblyName%>.Server
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             var dataConfig = WebApp.Configuration.GetTypedSection<<%=assemblyName%>.Data.Config>("data");
+            var serverConfig = WebApp.Configuration.GetTypedSection<<%=assemblyName%>.Server.Config>("server");
+            var tokenProvider = WebApp.Configuration.GetTypedSection<<%=assemblyName%>.Service.TokenProviderConfig>("service:tokenProvider");
 
             services.AddOptions();
             services.Configure<AppConfig>(WebApp.Configuration); // root web configuration
@@ -73,6 +75,7 @@ namespace <%=assemblyName%>.Server
 
             services.ConfigureMvc(WebApp.Configuration.GetTypedSection<Config.AntiForgeryConfig>("server:antiForgery"));
             services.AddMemoryCache();
+            services.ConfigureAuthentication(tokenProvider, new string[] { "admin" });
             <%if(dbProvider == 'npgsql'){%>
             services.AddDbContext<NpgSqlContext>(options =>
             {    

@@ -1,5 +1,0 @@
-{
-    "applicationName": "<%=assemblyName%>",
-    "environment": "Development",
-    "urls": "https://localhost:<%=port%>"
-}

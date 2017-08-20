@@ -25,7 +25,6 @@ These instructions will get a copy of the project up and running on your local m
 Update and build the .NET Core projects by switching to to ./src/server and running
 
 ```DOS
-dotnet restore
 dotnet build
 ```
 
@@ -36,7 +35,7 @@ npm install
 npm install webpack -g
 npm install typings -g
 typings install
-webpack -p --config webpack/development.js
+webpack -p --config webpack.config.js
 ```
 #### Configuration
 
@@ -48,7 +47,7 @@ Run the project by switching to ./src/server and running
 ```DOS
 dotnet run -p server.csproj -c Development
 ```
-You should now be able to load the site at [https://localhost:<%=port%>/](https://localhost:<%=port%>/) 
+You should now be able to load the site at [http://localhost:<%=port%>/](http://localhost:<%=port%>/) 
 
 
 ## Overview

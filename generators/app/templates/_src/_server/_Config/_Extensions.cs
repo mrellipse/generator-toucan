@@ -10,8 +10,7 @@ namespace <%=assemblyName%>.Server
     {
         public static IConfigurationBuilder Add<%=assemblyName%>(this IConfigurationBuilder builder)
         {
-            builder.AddEnvironmentVariables("ASPNETCORE_")
-                .AddJsonFile("hosting.json");
+            builder.AddEnvironmentVariables("ASPNETCORE_");
 
             var env = builder.Build().GetSection(WebHostDefaults.EnvironmentKey).Value;
 

@@ -13,7 +13,7 @@ namespace <%=assemblyName%>.Server
         {
             var contentTypes = request.GetTypedHeaders().Accept;
 
-            return contentTypes.Any(o => o.MediaType == MediaTypeJson || o.MediaType.ToLower().Contains("json"));
+            return contentTypes.Any(o => o.MediaType == MediaTypeJson || o.MediaType.Value.ToLower().Contains("json"));
         }
     }
 }

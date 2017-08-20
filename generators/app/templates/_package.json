@@ -9,7 +9,7 @@
     "scaffold:ui": "cd ./src/ui && npm install && cd ../..",
     "scaffold:api": "cd ./src/server && dotnet restore && cd ../..",
     "scaffold:db": "cd ./src/data && dotnet ef --startup-project ../server migrations add Initial -c <%=dbContextName%> && cd ../..",
-    "start": "cd ./src/server && dotnet run -p server.csproj -c Development",
+    "start": "cd ./src/server &&set ASPNETCORE_ENVIRONMENT=development&& dotnet run -p server.csproj",
     "preinstall": "npm run scaffold:ui && npm run scaffold:api && npm run scaffold:db" <%if(runPostInstall){%>,
       "postinstall": "cd ./src/server && dotnet run -p server.csproj -c Development"<%
     }%>
