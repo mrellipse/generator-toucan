@@ -1,6 +1,6 @@
 # <%=name%>
 
-This is an SPA built using .Net Core, Vue & Vuex.
+This is an SPA built using .Net Core 2.0, TypeScript, Vue & Vuex.
 
 ## Features
 * localization
