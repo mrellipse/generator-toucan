@@ -33,6 +33,7 @@ namespace <%=assemblyName%>.Server
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions()
                 {
                     HotModuleReplacement = true,
+                    HotModuleReplacementEndpoint = "/dist", // this value must be the same as 'output.publicPath' in webpack.config.js
                     ProjectPath = Path.Combine(Directory.GetCurrentDirectory(), @"..\ui")
                 });
             }
