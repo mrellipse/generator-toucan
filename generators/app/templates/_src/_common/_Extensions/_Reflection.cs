@@ -1,8 +1,8 @@
 using System;
 
-namespace <%=assemblyName%>.Common.Extensions
+namespace <%=assemblyName%>.Common
 {
-    public static class Reflection
+    public static partial class Extensions
     {
         public static string GetAssemblyName(this Type type)
         {

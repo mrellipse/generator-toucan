@@ -18,12 +18,12 @@ function walkSync(currentDirPath, callback) {
 
 let basePath = "C:\\coding\\generator-toucan\\generators\\app\\templates";
 
-walkSync(basePath + "\\_src", (filePath, stat) => {
+walkSync(basePath + "\\_src\\_ui", (filePath, stat) => {
   let parts = filePath.split('\\');
   let fileName = parts[parts.length - 1];
 
   if (fileName.substring(1, 1) !== '_') {
     parts[parts.length - 1] = '_' + fileName;
-    //fs.rename(filePath, parts.join('\\'))
+    fs.rename(filePath, parts.join('\\'))
   }
 });

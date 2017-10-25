@@ -12,7 +12,7 @@ using <%=assemblyName%>.Service.Model;
 
 namespace <%=assemblyName%>.Service
 {
-    public class ManageUserService : IManageUserService
+    public class ManageUserService : IManageUserService, IManageProfileService
     {
         private readonly DbContextBase db;
 
@@ -63,6 +63,7 @@ namespace <%=assemblyName%>.Service
                 return null;
 
             new ManageUserHelper(dbUser)
+                .UpdateCulture(user)
                 .UpdateProfile(user);
 
             this.db.UpdateUserRoles(dbUser, user.Roles.ToArray());
@@ -71,7 +72,19 @@ namespace <%=assemblyName%>.Service
 
             return this.MapUser(dbUser);
         }
+        public async Task<IUserExtended> UpdateUserCulture(long userId, string cultureName, string timeZoneId)
+        {
+            Data.Model.User dbUser = this.ResolveUser(userId);
 
+            if (dbUser == null)
+                return null;
+
+            new ManageUserHelper(dbUser).UpdateCulture(cultureName, timeZoneId);
+
+            await this.db.SaveChangesAsync();
+
+            return this.MapUser(dbUser);
+        }
         public async Task<IUserExtended> UpdateUserStatus(string username, bool enabled, bool verified)
         {
             Data.Model.User dbUser = this.ResolveUser(username);
@@ -109,9 +122,11 @@ namespace <%=assemblyName%>.Service
             else
                 return new Model.User()
                 {
+                    CultureName = user.CultureName,
                     DisplayName = user.DisplayName,
                     Enabled = user.Enabled,
                     Roles = user.Roles.Select(o => o.RoleId),
+                    TimeZoneId = user.TimeZoneId,
                     UserId = user.UserId,
                     Username = user.Username,
                     Verified = user.Verified

@@ -1,0 +1,62 @@
+{
+    "version": "0.1.0",
+    "tasks": [
+        {
+            "taskName": "dev build",
+            "command": "cmd",
+            "isShellCommand": true,
+            "args": [
+                "/C",
+                "dotnet",
+                "build",
+                "${workspaceRoot}/src/server/server.csproj"
+            ],
+            "isBuildCommand": false,
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "taskName": "test",
+            "command": "cmd",
+            "isShellCommand": true,
+            "args": [
+                "/C",
+                "dotnet",
+                "test",
+                "${workspaceRoot}/test/test-common/test-common.csproj"
+            ],
+            "isTestCommand": true,
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "taskName": "dev build ui",
+            "command": "webpack",
+            "isShellCommand": true,
+            "args": [
+                "--config",
+                "webpack.config.js"
+            ],
+            "showOutput": "always",
+            "options": {
+                "cwd": "${workspaceRoot}/src/ui"
+            },
+            "isBuildCommand": true
+        },
+        {
+            "taskName": "publish",
+            "command": "cmd",
+            "isShellCommand": true,
+            "args": [
+                "/C",
+                "powershell",
+                "Set-ExecutionPolicy -ExecutionPolicy Bypass",
+                "|",
+                "powershell",
+                "${workspaceRoot}/build/production.ps1"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}/src/ui"
+            },
+            "isBuildCommand": false
+        }
+    ]
+}

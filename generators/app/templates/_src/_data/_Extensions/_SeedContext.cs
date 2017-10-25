@@ -102,9 +102,11 @@ namespace <%=assemblyName%>.Data
             {
                 adminUser = new User()
                 {
-                    Username = AdminEmail,
-                    Enabled = true,
+                    CultureName = "en",
                     DisplayName = "Webmaster",
+                    Enabled = true,
+                    TimeZoneId = Globalization.DefaultTimeZoneId,
+                    Username = AdminEmail,
                     Verified = true
                 };
 
@@ -140,7 +142,6 @@ namespace <%=assemblyName%>.Data
 
                 var userProvider = new UserProviderLocal
                 {
-                    CreatedOn = DateTime.Now,
                     ProviderId = ProviderTypes.Local,
                     PasswordSalt = salt,
                     PasswordHash = hash,

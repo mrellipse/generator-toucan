@@ -1,0 +1,20 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "typescript.check.tscVersion": true,
+    "workbench.sideBar.location": "left",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/node_modules": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/*.Designer.cs": true,
+        "**/*.lock.json": true,
+        "dist/*.dll": true,
+        "dist/*.pdb": true,
+        "src/server/wwwroot/**/*" : true
+    },
+    "terminal.integrated.setLocaleVariables": true
+}

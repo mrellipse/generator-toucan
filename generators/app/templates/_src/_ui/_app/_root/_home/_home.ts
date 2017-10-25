@@ -1,4 +1,4 @@
-import * as Vue from 'vue';
+import Vue from 'vue';
 import { Store } from 'vuex';
 import Component from 'vue-class-component';
 import { default as Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -8,6 +8,8 @@ import { AuthenticationService, IClaimsHelper } from '../../services';
 import { ContentService } from '../services';
 import { IPayload } from '../../model';
 import { IRootStoreState, RootStoreTypes } from '../store';
+
+require('./home.scss');
 
 @Component({
   template: require('./home.html')
@@ -22,21 +24,16 @@ export class Home extends Vue {
 
   @State((state: IRootStoreState) => state.common.isLoading) isLoading: boolean
 
-  @State((state: IRootStoreState) => state.secureContent) secureContent: string
+  @State((state: IRootStoreState) => state.apiCallContent) apiCallContent: string
 
   created() {
 
     this.svc = new ContentService(this.$store);
 
-    if (this.authenticated) {
+    let onFulfilled = () => this.init = true;
 
-      let onSuccess = (res: any) => {
-        this.init = true;
-      }
-
-      this.svc.rikerIpsum()
-        .then(onSuccess);
-    }
+    this.svc.rikerIpsum()
+      .then(onFulfilled);
   }
 
   init: Boolean = false;
@@ -44,4 +41,8 @@ export class Home extends Vue {
   $common: ICommonOptions;
 
   $store: Store<IRootStoreState>;
+
+  get siteLogoAlt() {
+    return this.$t('dict.logo');
+  }
 }

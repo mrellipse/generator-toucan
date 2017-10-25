@@ -1,15 +1,18 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SpaServices.Webpack;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using StructureMap;
-using <%=assemblyName%>.Common.Extensions;
+using <%=assemblyName%>.Common;
 using <%=assemblyName%>.Contract;
 using <%=assemblyName%>.Data;
 
@@ -26,27 +29,33 @@ namespace <%=assemblyName%>.Server
 
             if (env.IsDevelopment())
             {
-                loggerFactory.AddConsole(LogLevel.Debug);
+                loggerFactory.AddConsole(LogLevel.Information);
 
                 app.UseDeveloperExceptionPage();
 
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions()
                 {
                     HotModuleReplacement = true,
-                    HotModuleReplacementEndpoint = "/dist", // this value must be the same as 'output.publicPath' in webpack.config.js
                     ProjectPath = Path.Combine(Directory.GetCurrentDirectory(), @"..\ui")
                 });
             }
 
             app.UseDefaultFiles();
             app.UseAuthentication();
-            app.UseAntiforgeryMiddleware(cfg.Server.AntiForgery.ClientName);
+            app.UseResponseCompression();
 
             app.UseStaticFiles(new StaticFileOptions()
             {
-                FileProvider = new PhysicalFileProvider(webRoot)
+                FileProvider = new PhysicalFileProvider(webRoot),
+                OnPrepareResponse = (content) =>
+                {
+                    var cultureService = content.Context.RequestServices.GetRequiredService<CultureService>();
+                    cultureService.EnsureCookie(content.Context);
+                }
             });
 
+            app.UseAntiforgeryMiddleware(cfg.Server.AntiForgery.ClientName);
+            app.UseRequestLocalization();
             app.UseMvc();
             app.UseHistoryModeMiddleware(webRoot, cfg.Server.Areas);
 
@@ -74,10 +83,32 @@ namespace <%=assemblyName%>.Server
             services.Configure<<%=assemblyName%>.Data.Config>(WebApp.Configuration.GetSection("data")); // configuration
             services.Configure<<%=assemblyName%>.Server.Config>(WebApp.Configuration.GetSection("server"));
 
-            services.ConfigureMvc(WebApp.Configuration.GetTypedSection<Config.AntiForgeryConfig>("server:antiForgery"));
+            services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
+            services.AddResponseCompression(options =>
+            {
+                options.MimeTypes = new[]
+                {
+                    // Default
+                    "text/plain",
+                    "text/css",
+                    "application/javascript",
+                    "text/html",
+                    "application/xml",
+                    "text/xml",
+                    "application/json",
+                    "text/json",
+                    // Custom
+                    "image/svg+xml"
+                };
+            });
+
             services.AddMemoryCache();
             services.ConfigureAuthentication(tokenProvider, new string[] { "admin" });
+            services.ConfigureMvc(WebApp.Configuration.GetTypedSection<Config.AntiForgeryConfig>("server:antiForgery"));
+
             <%if(dbProvider == 'npgsql'){%>
+            services.ConfigureMvc(WebApp.Configuration.GetTypedSection<Config.AntiForgeryConfig>("server:antiForgery"));
+
             services.AddDbContext<NpgSqlContext>(options =>
             {    
                 string assemblyName = typeof(<%=assemblyName%>.Data.Config).GetAssemblyName();

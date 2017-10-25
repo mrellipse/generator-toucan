@@ -1,5 +1,6 @@
 {
     "data": {
-        "connectionString": "<%=dbProviderString%>"
+        "connectionString": "<%=dbProviderString%>",
+        "schemaName": ""
     }
 }

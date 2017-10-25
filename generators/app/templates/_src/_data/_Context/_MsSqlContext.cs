@@ -1,11 +1,10 @@
-
 using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
-using <%=assemblyName%>.Common.Extensions;
+using <%=assemblyName%>.Common;
 using <%=assemblyName%>.Data.Model;
 
 namespace <%=assemblyName%>.Data
@@ -20,62 +19,98 @@ namespace <%=assemblyName%>.Data
         {
         }
 
+        public MsSqlContext CreateDbContext(string[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<MsSqlContext>();
+
+            optionsBuilder.UseSqlServer(this.DesignTimeConfig?.ConnectionString, o =>
+            {
+                string assemblyName = typeof(MsSqlContext).GetAssemblyName();
+                o.MigrationsAssembly(assemblyName);
+            });
+
+            return new MsSqlContext(optionsBuilder.Options);
+        }
+
         protected sealed override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.BeforeModelCreated(modelBuilder);
+            CreateModel(modelBuilder);
+            base.AfterModelCreated(modelBuilder);
+        }
+
+        private static void CreateModel(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Provider>(entity =>
             {
-                entity.Property(e => e.ProviderId).HasColumnType("varchar(64)");
+                entity.Property(e => e.ProviderId).HasMaxLength(64);
 
                 entity.Property(e => e.Description)
                     .IsRequired()
-                    .HasColumnType("varchar(512)");
+                    .HasMaxLength(512);
 
-                entity.Property(e => e.Enabled).HasDefaultValueSql("1");
+                entity.Property(e => e.Enabled);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasColumnType("varchar(128)");
+                    .HasMaxLength(128);
             });
 
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.Property(e => e.RoleId)
-                    .HasColumnType("varchar(16)");
+                    .HasMaxLength(16);
 
-                entity.Property(e => e.CreatedOn)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("getdate()");
-
-                entity.Property(e => e.Enabled).HasDefaultValueSql("0");
+                entity.Property(e => e.Enabled);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasColumnType("varchar(64)");
+                    .HasMaxLength(64);
 
-                entity.HasOne(e => e.CreatedByUser)
-                    .WithMany()
-                    .HasForeignKey(o => o.CreatedBy)
-                    .IsRequired();
+                entity.AddAuditColumns();
             });
 
             modelBuilder.Entity<User>(entity =>
             {
-                entity.Property(e => e.CreatedOn)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("getdate()");
-
-                entity.Property(e => e.Username)
-                    .IsRequired()
-                    .HasColumnType("varchar(128)");
-
-                entity.Property(e => e.Enabled).HasDefaultValueSql("1");
+                entity.Property(e => e.CultureName)
+                    .IsRequired();
 
                 entity.Property(e => e.DisplayName)
                     .IsRequired()
-                    .HasColumnType("varchar(128)");
+                    .HasMaxLength(128);
 
-                entity.Property(e => e.Verified).HasDefaultValueSql("0");
+                entity.Property(e => e.Enabled);
 
+                entity.Property(e => e.Username)
+                    .IsRequired()
+                    .HasMaxLength(128);
+
+                entity.Property(e => e.Verified);
+
+                entity.Property(e => e.TimeZoneId)
+                    .IsRequired()
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.CreatedOn)
+                    .IsRequired()
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.CreatedBy).IsRequired(false);
+
+                entity.Property(e => e.LastUpdatedOn)
+                    .IsRequired(false)
+                    .HasColumnType("DATETIME2(7)")
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.LastUpdatedBy).IsRequired(false);
+
+                entity.HasOne(e => e.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(o => o.CreatedBy);
+
+                entity.HasOne(e => e.LastUpdatedByUser)
+                    .WithMany()
+                    .HasForeignKey(o => o.LastUpdatedBy);
             });
 
             modelBuilder.Entity<UserProvider>(entity =>
@@ -87,25 +122,23 @@ namespace <%=assemblyName%>.Data
                     .HasName("IX_UserProvider_UserId");
 
                 entity.Property(e => e.ProviderId)
-                    .HasColumnType("varchar(64)");
+                    .HasMaxLength(64);
 
                 entity.Property(e => e.CreatedOn)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("getdate()");
+                    .HasColumnType("DATETIME2(7)")
+                    .HasDefaultValueSql("GETUTCDATE()");
 
                 entity.Property(e => e.ExternalId)
-                    .HasColumnType("varchar(64)");
+                    .HasMaxLength(64);
 
                 entity.HasOne(d => d.Provider)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.ProviderId)
-                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_UserProvider_Provider");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Providers)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_UserProvider_User");
 
                 entity.HasDiscriminator<string>("UserProviderType")
@@ -123,15 +156,15 @@ namespace <%=assemblyName%>.Data
 
                 entity.Property(e => e.Code)
                     .IsRequired(true)
-                    .HasColumnType("varchar(64)");
+                    .HasMaxLength(64);
 
                 entity.Property(e => e.IssuedAt)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("getdate()");
+                    .HasColumnType("DATETIME2(7)")
+                    .HasDefaultValueSql("GETUTCDATE()");
 
                 entity.Property(e => e.RedeemedAt)
                     .IsRequired(false)
-                    .HasColumnType("datetime");
+                    .HasColumnType("DATETIME2(7)");
 
                 entity.HasOne(d => d.User)
                     .WithMany(d => d.Verifications)
@@ -141,13 +174,11 @@ namespace <%=assemblyName%>.Data
 
             modelBuilder.Entity<UserProviderLocal>(entity =>
             {
-
                 entity.Property(e => e.PasswordSalt)
-                    .HasColumnType("varchar(128)");
+                    .HasMaxLength(128);
 
                 entity.Property(e => e.PasswordHash)
-                    .HasColumnType("varchar(256)");
-
+                    .HasMaxLength(256);
             });
 
             modelBuilder.Entity<UserRole>(entity =>
@@ -158,45 +189,19 @@ namespace <%=assemblyName%>.Data
                 entity.HasIndex(e => e.UserId)
                     .HasName("IX_UserRole_UserId");
 
-                entity.Property(e => e.RoleId).HasColumnType("varchar(16)");
+                entity.Property(e => e.RoleId).HasMaxLength(16);
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.RoleId)
-                    .OnDelete(DeleteBehavior.Restrict)
-                    .HasConstraintName("FK_UserRole_Role");
+                    .HasConstraintName("FK_UserRole_Role")
+                    .OnDelete(DeleteBehavior.ClientSetNull);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Roles)
                     .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_UserRole_User");
             });
-        }
-
-        public MsSqlContext CreateDbContext(string[] args)
-        {
-            DirectoryInfo info = new DirectoryInfo(AppContext.BaseDirectory);
-            Console.WriteLine($"AppContext.BaseDirectory='{info.FullName}'");
-            DirectoryInfo dataProjectRoot = info.Parent.Parent.Parent.Parent;
-            string basePath = Path.Combine(dataProjectRoot.FullName, "data");
-
-            IConfigurationRoot config = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddJsonFile("mssql.json")
-                .Build();
-
-            string connectionString = config.GetSection(<%=assemblyName%>.Data.Config.DbConnectionKey).Value;
-
-            var optionsBuilder = new DbContextOptionsBuilder<MsSqlContext>();
-
-            optionsBuilder.UseSqlServer(connectionString, o =>
-            {
-                string assemblyName = typeof(MsSqlContext).GetAssemblyName();
-                o.MigrationsAssembly(assemblyName);
-            });
-
-            return new MsSqlContext(optionsBuilder.Options);
         }
     }
 }

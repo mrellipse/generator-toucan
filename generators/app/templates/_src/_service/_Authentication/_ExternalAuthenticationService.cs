@@ -58,7 +58,6 @@ namespace <%=assemblyName%>.Service
             {
                 db.UserProvider.Add(new UserProvider()
                 {
-                    CreatedOn = DateTime.Now,
                     ExternalId = token.sub,
                     ProviderId = provider.ProviderId,
                     User = user
@@ -93,9 +92,10 @@ namespace <%=assemblyName%>.Service
         {
             var user = new User()
             {
-                CreatedOn = DateTime.Now,
+                CultureName = "en",    
                 DisplayName = email.Split('@')[0],
                 Enabled = true,
+                TimeZoneId = Globalization.DefaultTimeZoneId,
                 Username = email,
                 Verified = false
             };

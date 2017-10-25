@@ -1,4 +1,4 @@
-import * as Vue from 'vue';
+import Vue from 'vue';
 import { default as Vuex } from 'vuex';
 import { Mutations } from './mutations';
 import { Actions } from './actions';
@@ -9,7 +9,7 @@ Vue.use(Vuex);
 
 export const Store = new Vuex.Store<IRootStoreState>({
     state: {
-        secureContent: null
+        apiCallContent: null
     },
     actions: Actions,
     mutations: Mutations,
@@ -24,8 +24,8 @@ if ((<any>module).hot) {
     './mutations'
   ], () => {
     Store.hotUpdate({
-      actions: require('./actions'),
-      mutations: require('./mutations')
+      actions: require('./actions').default,
+      mutations: require('./mutations').default
     })
   })
 }

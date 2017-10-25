@@ -1,6 +1,7 @@
 {
     "data": {
-        "connectionString": ""
+        "connectionString": "",
+        "schemaName": ""
     },
     "kestrel": {
         "endpoints": {
@@ -11,7 +12,6 @@
         }
     },
     "server": {
-        "webroot": ".\\wwwroot",
         "areas": [
             "admin"
         ],
@@ -20,7 +20,10 @@
             "headerName": "X-XSRF-TOKEN",
             "clientName": "XSRF-TOKEN",
             "requireSsl": true
-        }
+        },
+        "defaultCulture": "en",
+        "defaultTimeZone": "AUS Eastern Standard Time",
+        "webroot": "./wwwroot"
     },
     "service": {
         "authenticationProviders": [
@@ -38,11 +41,11 @@
             }
         ],
         "tokenProvider": {
-            "tokenExpiration": "5",
+            "tokenExpiration": "30",
             "tokenSecurityKey": "",
             "tokenSecurityAlgorithm": "HS256",
             "tokenIssuer": "",
-            "tokenAudience": ""
+            "tokenAudience": "<%=assemblyName%>app"
         }
     },
     "Logging": {

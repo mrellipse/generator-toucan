@@ -35,7 +35,7 @@ npm install
 npm install webpack -g
 npm install typings -g
 typings install
-webpack -p --config webpack.config.js
+webpack --config webpack.config.js
 ```
 #### Configuration
 
