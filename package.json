@@ -1,6 +1,6 @@
 {
   "name": "generator-toucan",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Quickly create a project using VueJs, TypeScript and .NET Core 2.0, based on SOLID design principles",
   "homepage": "https://github.com/mrellipse/toucan",
   "author": {
