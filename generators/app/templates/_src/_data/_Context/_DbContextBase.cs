@@ -37,7 +37,7 @@ namespace <%=assemblyName%>.Data
                             .AddJsonFile(<%if(dbProvider == 'npgsql'){%>"npgsql.json"<%}%><%if(dbProvider == 'mssql'){%>"mssql.json"<%}%>)
                             .Build();
 
-                        designTimeConfig = config.GetTypedSection<Config>("data");
+                        designTimeConfig = config.GetSection("data").Get<Config>();
                     }
                     catch (Exception) { }
                 }

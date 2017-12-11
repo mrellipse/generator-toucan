@@ -16,7 +16,7 @@ namespace <%=assemblyName%>.Server
     {
         public ContainerRegistry()
         {
-            var targets = new Dictionary<Type, PayloadMessageType>()
+            var targets = new Filters.ApiExceptionFilterTargets()
             {
                 { typeof(<%=assemblyName%>.Service.ServiceException), PayloadMessageType.Failure}
             };
@@ -33,8 +33,11 @@ namespace <%=assemblyName%>.Server
             For<ILocalizationService>().Add<LocalizationService>();
 
             For<Filters.ApiResultFilter>();
-            For<Filters.ApiExceptionFilter>().Use(() => new Filters.ApiExceptionFilter(targets));
+            For<Filters.ApiExceptionFilterTargets>().Use(targets);
+            For<Filters.ApiExceptionFilter>();
             For<Filters.IdentityMappingFilter>();
+
+            For<CultureService>();
         }
     }
 }

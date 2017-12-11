@@ -236,7 +236,8 @@ module.exports = class extends Generator {
 
     let staticResourceExtensions = [
       '.png',
-      '.ttf'
+      '.ttf',
+      '.ejs'
     ];
 
     let isTargetResource = (filePath) => {
