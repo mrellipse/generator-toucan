@@ -302,6 +302,7 @@ module.exports = class extends Generator {
       }
     };
 
+    walkSync(this.templatePath('_.vscode'), fn);
     walkSync(this.templatePath('_build'), fn);
     walkSync(this.templatePath('_test'), fn);
     walkSync(this.templatePath('_src'), fn);

@@ -41,10 +41,10 @@
             }
         ],
         "tokenProvider": {
-            "tokenExpiration": "30",
-            "tokenSecurityKey": "",
+            "tokenExpiration": "10",
+            "tokenSecurityKey": "startrekkingacrosstheuniverseonthestarshipenterpriseundercaptainkirk",
             "tokenSecurityAlgorithm": "HS256",
-            "tokenIssuer": "",
+            "tokenIssuer": "http://<%=assemblyName%>.org.au",
             "tokenAudience": "<%=assemblyName%>app"
         }
     },
