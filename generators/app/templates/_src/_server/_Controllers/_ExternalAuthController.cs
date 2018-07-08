@@ -13,7 +13,7 @@ namespace <%=assemblyName%>.Server.Controllers
     [Route("auth/external/[action]")]
     [ServiceFilter(typeof(Filters.ApiResultFilter))]
     [ServiceFilter(typeof(Filters.ApiExceptionFilter))]
-    public class ExternalAuthControllerController : Controller
+    public class ExternalAuthControllerController : ControllerBase
     {
         private const string IssuedNoncesKey = "IssuedNonces";
         private readonly IExternalAuthenticationService externalAuthService;
@@ -28,10 +28,10 @@ namespace <%=assemblyName%>.Server.Controllers
             }
         }
 
-        public ExternalAuthControllerController(IExternalAuthenticationService externalAuthService, IMemoryCache cache, ITokenProviderService<Token> tokenService)
+        public ExternalAuthControllerController(IExternalAuthenticationService externalAuthService, IMemoryCache cache, ITokenProviderService<Token> tokenService, IDomainContextResolver resolver, ILocalizationService localization) : base(resolver, localization)
         {
-            this.externalAuthService = externalAuthService;
             this.cache = cache;
+            this.externalAuthService = externalAuthService;
             this.tokenService = tokenService;
         }
 
@@ -53,18 +53,26 @@ namespace <%=assemblyName%>.Server.Controllers
         {
             // check for server-generated nonce, and make sure it was issued recently
             if (!IssuedNonces.Any(o => o.Hash == options.Nonce))
-                throw new ServiceException(Constants.InvalidNonce);
+                this.ThrowLocalizedServiceException(Constants.InvalidNonce);
 
             Nonce nonce = IssuedNonces.FirstOrDefault(o => o.Hash == options.Nonce);
 
-            if (nonce.Created.AddMinutes(30) < DateTime.Now)
-                throw new ServiceException(Constants.InvalidNonce);
+            if (nonce.Processing)
+                this.ThrowLocalizedServiceException(Constants.InProgressNonce);
+
+            if (nonce.Created.AddMinutes(30) < DateTime.UtcNow)
+            {
+                IssuedNonces.Remove(nonce);
+                this.ThrowLocalizedServiceException(Constants.ExpiredNonce);
+            }
+
+            nonce.Update(true);
 
             // swap the external access token for a local application token
             var identity = await this.externalAuthService.RedeemToken(options);
 
             if (identity == null)
-                throw new ServiceException(Constants.FailedToResolveUser);
+                this.ThrowLocalizedServiceException(Constants.UnknownUser);
 
             // remove the original nonce, and revoke the external access token, as they are longer required
             IssuedNonces.Remove(nonce);
@@ -80,7 +88,7 @@ namespace <%=assemblyName%>.Server.Controllers
             bool available = await this.externalAuthService.ValidateToken(token.ProviderId, token.AccessToken);
 
             if (!available)
-                throw new ServiceException(Constants.InvalidAccessToken);
+                this.ThrowLocalizedServiceException(Constants.InvalidAccessToken);
 
             return true;
         }

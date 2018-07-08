@@ -32,6 +32,9 @@
         "success": "Succès",
         "update": "Mettre à jour",
         "verified": "Vérifié",
+        "warnings": {
+            "stub": "Fins d'illustration seulement"
+        },
         "yes": "Oui"
     },
     "forbidden": {
@@ -77,6 +80,10 @@
         "title": "Page non trouvée",
         "instruction": "Malheureuses circonstances"
     },
+    "token": {
+        "expiresAt": "Votre jeton de connexion expire à{0}",
+        "expired": "Votre jeton de connexion a expiré"
+    },
     "search": {
         "title": "Résultats de recherche pour '{0}'",
         "instruction": "Pas mis en œuvre"
@@ -98,11 +105,7 @@
         "password": "Mot de passe"
     },
     "site": {
-        "copyright": "© Droits d'auteur 2058, <%=name%>"
-    },
-    "token": {
-        "expiresAt": "Votre jeton de connexion expire à{0}",
-        "expired": "Votre jeton de connexion a expiré"
+        "copyright": "© Droits d'auteur 2058, <%=name%> Société"
     },
     "user": {
         "updated": "Mise à jour de l'utilisateur"
@@ -114,10 +117,12 @@
         "sameAs": "Doit correspondre {0}",
         "login": {
             "EmailAddressInUse": "L'adresse e-mail est déjà utilisée",
-            "FailedToResolveUser": "Nom d'utilisateur ou mot de passe incorrect",
+            "InvalidUsernameOrPassword": "Nom d'utilisateur ou mot de passe incorrect",
             "FailedToVerifyUser": "Échec de la vérification de l'utilisateur",
             "Network": "Erreur de réseau"
-        }
+        },
+        "unknownCulture": "Culture inconnue",
+        "unknownUser": "Utilisateur inconnu"
     },
     "verify": {
         "title": "Vérification",

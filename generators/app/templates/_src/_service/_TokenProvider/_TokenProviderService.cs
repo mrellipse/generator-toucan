@@ -15,13 +15,15 @@ using System.Text;
 
 namespace <%=assemblyName%>.Service
 {
-    public class TokenProviderService : ITokenProviderService<Token>
+   public class TokenProviderService : ITokenProviderService<Token>
     {
         private readonly TokenProviderOptions options;
+        private readonly IAuditService audit;
         private readonly TokenProviderConfig config;
 
-        public TokenProviderService(IOptions<<%=assemblyName%>.Service.TokenProviderConfig> config)
+        public TokenProviderService(IOptions<<%=assemblyName%>.Service.TokenProviderConfig> config, IAuditService audit)
         {
+            this.audit = audit;
             this.config = config.Value;
 
             SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(this.config.TokenSecurityKey));
@@ -62,8 +64,10 @@ namespace <%=assemblyName%>.Service
                 signingCredentials: options.SigningCredentials);
 
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-
+            
             var token = new Token(encodedJwt, jwt.Payload.Exp.Value);
+
+            this.audit.TokenCreatedEvent(jwt.Subject, jwt.Issuer, jwt.Payload.Exp);
 
             return Task.FromResult<Token>(token);
         }

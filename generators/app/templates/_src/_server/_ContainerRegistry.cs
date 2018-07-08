@@ -29,6 +29,8 @@ namespace <%=assemblyName%>.Server
             For<IHttpContextAccessor>().Use<HttpContextAccessor>().Transient();
             For<IHttpServiceContextResolver>().Use<HttpServiceContextResolver>();
             For<IDomainContextResolver>().Use<HttpServiceContextResolver>();
+            For<IDeviceProfiler>().Use<HttpDeviceProfiler>();
+            For<IVerificationProvider>().Use<HttpVerificationProvider>();
             For<ILocalizationResolver>().Add<LocalizationResolver>().Singleton();
             For<ILocalizationService>().Add<LocalizationService>();
 

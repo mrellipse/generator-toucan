@@ -17,7 +17,7 @@ namespace <%=assemblyName%>.Server.Controllers
     [ServiceFilter(typeof(Filters.ApiResultFilter))]
     [ServiceFilter(typeof(Filters.ApiExceptionFilter))]
     [ServiceFilter(typeof(Filters.IdentityMappingFilter))]
-    public class AuthController : Controller
+    public class AuthController : ControllerBase
     {
         private readonly IAntiforgery antiForgeryService;
         private readonly ILocalAuthenticationService authService;
@@ -25,9 +25,8 @@ namespace <%=assemblyName%>.Server.Controllers
         private readonly <%=assemblyName%>.Server.Config serverConfig;
         private readonly ISignupService signupService;
         private readonly ITokenProviderService<Token> tokenService;
-        private readonly IVerificationProvider verificationProvider;
 
-        public AuthController(IAntiforgery antiForgeryService, ILocalAuthenticationService authService, CultureService cultureService, IOptions<<%=assemblyName%>.Server.Config> serverConfig, ISignupService signupService, IVerificationProvider verificationProvider, ITokenProviderService<Token> tokenService)
+        public AuthController(IAntiforgery antiForgeryService, ILocalAuthenticationService authService, CultureService cultureService, IOptions<<%=assemblyName%>.Server.Config> serverConfig, ISignupService signupService, ITokenProviderService<Token> tokenService, IDomainContextResolver resolver, ILocalizationService localization) : base(resolver, localization)
         {
             this.antiForgeryService = antiForgeryService;
             this.authService = authService;
@@ -35,22 +34,24 @@ namespace <%=assemblyName%>.Server.Controllers
             this.serverConfig = serverConfig.Value;
             this.signupService = signupService;
             this.tokenService = tokenService;
-            this.verificationProvider = verificationProvider;
         }
 
         [Authorize]
         [HttpGet()]
-        public async Task<object> IssueVerificationCode()
+        public async Task<object> IssueVerificationCode(string providerKey = null)
         {
             IUser user = this.ApplicationUser();
 
             if (user == null)
-                throw new ServiceException(Constants.FailedToVerifyUser);
+                this.ThrowLocalizedServiceException(Constants.UnknownUser);
 
-            string code = await this.signupService.IssueCode(this.verificationProvider, user);
+            if (string.IsNullOrWhiteSpace(providerKey))
+                providerKey = HttpVerificationProvider.ProviderKey;
+
+            string code = await this.signupService.SendVerificationCode(user, providerKey);
 
             if (code == null)
-                throw new ServiceException(Constants.FailedToVerifyUser);
+                this.ThrowLocalizedServiceException(Constants.FailedToVerifyUser);
 
             return code;
         }
@@ -77,12 +78,12 @@ namespace <%=assemblyName%>.Server.Controllers
         public async Task<object> Signup([FromBody]LocalSignupOptions options)
         {
             if (!await this.authService.ValidateUser(options.Username))
-                throw new ServiceException(Constants.EmailAddressInUse);
+                this.ThrowLocalizedServiceException(Constants.EmailAddressInUse);
 
             var identity = await this.signupService.SignupUser(options);
 
             if (identity == null)
-                throw new ServiceException(Constants.FailedToResolveUser);
+                this.ThrowLocalizedServiceException(Constants.UnknownUser);
 
             this.SetAntiforgeryCookies();
 
@@ -96,7 +97,7 @@ namespace <%=assemblyName%>.Server.Controllers
             var identity = await this.authService.ResolveUser(credentials.Username, credentials.password);
 
             if (identity == null)
-                throw new ServiceException(Constants.FailedToResolveUser);
+                this.ThrowLocalizedServiceException(Constants.UnknownUser);
 
             this.SetAntiforgeryCookies();
 
@@ -115,7 +116,7 @@ namespace <%=assemblyName%>.Server.Controllers
             bool available = await this.authService.ValidateUser(username);
 
             if (!available)
-                throw new ServiceException(Constants.EmailAddressInUse);
+                this.ThrowLocalizedServiceException(Constants.EmailAddressInUse);
 
             return "";
         }
@@ -127,12 +128,12 @@ namespace <%=assemblyName%>.Server.Controllers
             IUser user = this.ApplicationUser();
 
             if (user == null)
-                throw new ServiceException(Constants.FailedToVerifyUser);
+                this.ThrowLocalizedServiceException(Constants.UnknownUser);
 
-            var identity = await this.signupService.RedeemCode(code, user);
+            var identity = await this.signupService.RedeemVerificationCode(user, code);
 
             if (identity == null)
-                throw new ServiceException(Constants.FailedToVerifyUser);
+                this.ThrowLocalizedServiceException(Constants.FailedToVerifyUser);
 
             return await this.tokenService.IssueToken(identity, identity.Name);
         }

@@ -109,8 +109,6 @@ namespace <%=assemblyName%>.Data
                     .IsRequired()
                     .HasMaxLength(128);
 
-                entity.Property(e => e.Verified);
-
                 entity.Property(e => e.TimeZoneId)
                     .IsRequired()
                     .HasMaxLength(32);
@@ -162,10 +160,21 @@ namespace <%=assemblyName%>.Data
 
             modelBuilder.Entity<Verification>(entity =>
             {
-                entity.HasKey(e => e.UserId)
+                entity.HasKey(e => e.Code)
                     .HasName("PK_Verification");
 
+                entity.HasIndex(e => e.UserId)
+                    .HasName("IX_Verification_UserId");
+
                 entity.Property(e => e.Code)
+                    .IsRequired(true)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.Fingerprint)
+                    .IsRequired(true)
+                    .HasMaxLength(256);
+
+                entity.Property(e => e.ProviderKey)
                     .IsRequired(true)
                     .HasMaxLength(64);
 

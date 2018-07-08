@@ -32,6 +32,9 @@
         "success": "Success",
         "update": "Update",
         "verified": "Verified",
+        "warnings": {
+            "stub": "Illustration purposes only"
+        },
         "yes": "Yes"
     },
     "forbidden": {
@@ -117,10 +120,12 @@
             "EmailAddressInUse": "Email address is already being used",
             "InvalidAccessToken": "Invalid access token",
             "InvalidNonce": "Invalid nonce",
-            "FailedToResolveUser": "Invalid username or password",
+            "InvalidUsernameOrPassword": "Invalid username or password",
             "FailedToVerifyUser": "Failed to verify user",
             "Network": "Network error"
-        }
+        },
+        "unknownCulture": "Unknown culture",
+        "unknownUser": "Unknown user"
     },
     "verify": {
         "title": "Verification",

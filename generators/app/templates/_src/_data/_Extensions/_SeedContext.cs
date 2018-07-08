@@ -106,8 +106,7 @@ namespace <%=assemblyName%>.Data
                     DisplayName = "Webmaster",
                     Enabled = true,
                     TimeZoneId = Globalization.DefaultTimeZoneId,
-                    Username = AdminEmail,
-                    Verified = true
+                    Username = AdminEmail
                 };
 
                 db.User.Add(adminUser);

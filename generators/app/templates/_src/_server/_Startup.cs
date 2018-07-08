@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.EntityFrameworkCore;
 using StructureMap;
 using <%=assemblyName%>.Common;
@@ -107,6 +107,7 @@ namespace <%=assemblyName%>.Server
             });
 
             services.AddMemoryCache();
+            services.AddDetection();
             services.ConfigureAuthentication(config.Service.TokenProvider, new string[] { "admin" });
             services.ConfigureMvc(config.Server.AntiForgery);
             <%if(dbProvider == 'npgsql'){%>
