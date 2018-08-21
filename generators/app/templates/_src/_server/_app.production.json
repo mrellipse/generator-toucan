@@ -40,6 +40,7 @@
                 "revokeUri": ""
             }
         ],
+        "claimsNamespace": "//<%=assemblyName.toLowerCase()%>/claims/",
         "tokenProvider": {
             "tokenExpiration": "10",
             "tokenSecurityKey": "startrekkingacrosstheuniverseonthestarshipenterpriseundercaptainkirk",

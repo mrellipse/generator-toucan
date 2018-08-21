@@ -4,21 +4,25 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 using <%=assemblyName%>.Data;
 using <%=assemblyName%>.Data.Model;
 
 namespace <%=assemblyName%>.Service
 {
-public class ExternalAuthenticationService : IExternalAuthenticationService
+    public class ExternalAuthenticationService : IExternalAuthenticationService
     {
+        private readonly Config config;
         private readonly ICryptoService crypto;
         private readonly DbContextBase db;
         private readonly IDeviceProfiler deviceProfiler;
         private readonly IEnumerable<IExternalAuthenticationProvider> providers;
 
-        public ExternalAuthenticationService(DbContextBase db, ICryptoService crypto, IDeviceProfiler deviceProfiler, IList<IExternalAuthenticationProvider> providers)
+        public ExternalAuthenticationService(DbContextBase db, IOptions<Config> config, ICryptoService crypto, IDeviceProfiler deviceProfiler, IList<IExternalAuthenticationProvider> providers)
         {
+            this.config = config.Value;
             this.crypto = crypto;
             this.db = db;
             this.deviceProfiler = deviceProfiler;
@@ -46,9 +50,7 @@ public class ExternalAuthenticationService : IExternalAuthenticationService
             if (token.aud != provider.ClientId)
                 return null;
 
-            User user = (from p in this.db.User.Include(o => o.Providers).Include(o => o.Roles)
-                         where p.Username == token.email
-                         select p).FirstOrDefault();
+            User user = this.db.User.FirstOrDefault(o => o.Username == token.email);
 
             if (user == null)
             {
@@ -70,7 +72,7 @@ public class ExternalAuthenticationService : IExternalAuthenticationService
 
             string fingerprint = this.deviceProfiler.DeriveFingerprint(user);
 
-            return user.ToClaimsIdentity(fingerprint);
+            return user.ToClaimsIdentity(this.config.ClaimsNamespace, fingerprint);
         }
 
         public void RevokeToken(string providerId, string accessToken)

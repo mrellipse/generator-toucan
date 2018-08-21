@@ -4,7 +4,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 using <%=assemblyName%>.Data;
 using <%=assemblyName%>.Data.Model;
 
@@ -12,37 +14,35 @@ namespace <%=assemblyName%>.Service
 {
     public class LocalAuthenticationService : ILocalAuthenticationService
     {
+        private readonly Config config;
         private ICryptoService crypto;
         private DbContextBase db;
         private readonly IDeviceProfiler deviceProfiler;
 
-        public LocalAuthenticationService(DbContextBase db, ICryptoService crypto, IDeviceProfiler deviceProfiler)
+        public LocalAuthenticationService(DbContextBase db, IOptions<Config> config, ICryptoService crypto, IDeviceProfiler deviceProfiler)
         {
+            this.config = config.Value;
             this.crypto = crypto;
             this.db = db;
             this.deviceProfiler = deviceProfiler;
         }
 
-        public Task<ClaimsIdentity> ResolveUser(string username, string password)
+        public async Task<ClaimsIdentity> ResolveUser(string username, string password)
         {
-            UserProviderLocal login = (from p in this.db.LocalProvider.Include(o => o.User)
-                    .Include(o => o.User.Roles)
-                    .Include(o => o.User.Verifications)
-                where p.User.Username == username
-                select p).FirstOrDefault();
+            UserProviderLocal login = await this.db.LocalProvider.Where(o => o.User.Username == username).FirstOrDefaultAsync();
 
             if (login != null)
             {
                 if (this.crypto.CheckKey(login.PasswordHash, login.PasswordSalt, password))
                 {
                     string fingerprint = this.deviceProfiler.DeriveFingerprint(login.User);
-                    ClaimsIdentity identity = login.User.ToClaimsIdentity(fingerprint);
+                    ClaimsIdentity identity = login.User.ToClaimsIdentity(this.config.ClaimsNamespace, fingerprint);
 
-                    return Task.FromResult(identity);
+                    return identity;
                 }
             }
 
-            return Task.FromResult<ClaimsIdentity>(null);
+            return null;
         }
 
         public async Task<IUser> ResolveUser(string username)
@@ -52,9 +52,7 @@ namespace <%=assemblyName%>.Service
 
         public async Task<bool> ValidateUser(string username)
         {
-            UserProviderLocal login = await (from p in this.db.LocalProvider.Include(o => o.User)
-                                             where p.User.Username == username
-                                             select p).FirstOrDefaultAsync();
+            UserProviderLocal login = await this.db.LocalProvider.Where(o => o.User.Username == username).FirstOrDefaultAsync();
 
             return login == null;
         }

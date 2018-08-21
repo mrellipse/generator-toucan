@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using <%=assemblyName%>.Data.Model;
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 
 namespace <%=assemblyName%>.Data
 {
@@ -14,7 +15,38 @@ namespace <%=assemblyName%>.Data
             EnsureLocalProvider(db);
             EnsureExternalProviders(db);
             User admin = EnsureAdmin(db, crypto);
-            EnsureRoles(db);
+            EnsureAuthorizationClaims(db, admin);
+            EnsureSystemRoles(db, admin);
+        }
+
+        private static void EnsureAuthorizationClaims(DbContextBase db, User admin)
+        {
+            string[] claims = new string[]
+            {
+                SecurityClaimTypes.Example
+            };
+
+            foreach (string claim in claims)
+            {
+                var securityClaim = db.SecurityClaim.FirstOrDefault(o => o.SecurityClaimId == claim);
+
+                if (securityClaim == null)
+                {
+                    securityClaim = new SecurityClaim()
+                    {
+                        CreatedBy = admin.UserId,
+                        CreatedOn = DateTime.UtcNow,
+                        Description = claim,
+                        Enabled = true,
+                        Origin = "System",
+                        ValidationPattern = SecurityClaimTypes.AllowedValuesPattern,
+                        SecurityClaimId = claim
+                    };
+
+                    db.SecurityClaim.Add(securityClaim);
+                    db.SaveChanges();
+                }
+            }
         }
 
         private static Provider EnsureExternalProviders(DbContextBase db)
@@ -75,22 +107,38 @@ namespace <%=assemblyName%>.Data
             return provider;
         }
 
-        private static void EnsureRoles(DbContextBase db)
+        private static void EnsureSystemRoles(DbContextBase db, User admin)
         {
-            User adminUser = db.User.SingleOrDefault(o => o.Username == AdminEmail);
-            Role userRole = db.Role.FirstOrDefault(o => o.RoleId == RoleTypes.User);
-
-            if (userRole == null)
+            foreach (var systemRole in RoleTypes.System)
             {
-                userRole = new Role()
+                Role role = db.Role.FirstOrDefault(o => o.RoleId == systemRole.Key);
+
+                if (role == null)
                 {
-                    CreatedBy = adminUser.UserId,
-                    Enabled = true,
-                    Name = "User",
-                    RoleId = RoleTypes.User
-                };
-                db.Role.Add(userRole);
-                db.SaveChanges();
+                    role = new Role()
+                    {
+                        CreatedBy = admin.UserId,
+                        Enabled = true,
+                        Name = systemRole.Value,
+                        RoleId = systemRole.Key
+                    };
+
+                    if (systemRole.Key == RoleTypes.User)
+                    {
+                        var claim = db.SecurityClaim.SingleOrDefault(o => o.SecurityClaimId == SecurityClaimTypes.Example);
+                        
+                        if (claim != null)
+                            role.SecurityClaims.Add(new RoleSecurityClaim()
+                            {
+                                Role = role,
+                                SecurityClaimId = SecurityClaimTypes.Example,
+                                Value = SecurityClaimValueTypes.Read.ToString()
+                            });
+                    }
+
+                    db.Role.Add(role);
+                    db.SaveChanges();
+                }
             }
         }
 

@@ -2,7 +2,7 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace <%=assemblyName%>.Contract
+namespace <%=assemblyName%>.Contract.Security
 {
     public interface IExternalAuthenticationService
     {

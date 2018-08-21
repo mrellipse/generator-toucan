@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using <%=assemblyName%>.Contract;
 using <%=assemblyName%>.Server.Model;
+using <%=assemblyName%>.Server.Security;
 using <%=assemblyName%>.Service;
+using <%=assemblyName%>.Service.Security;
 
 namespace <%=assemblyName%>.Server.Controllers
 {

@@ -9,5 +9,6 @@ namespace <%=assemblyName%>.Service
 
         public TokenProviderConfig TokenProvider { get; set; }
         public ExternalProviderConfig[] AuthenticationProviders { get; set; }
+        public string ClaimsNamespace { get; set; }
     }
 }

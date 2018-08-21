@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { State } from 'vuex-class';
+import { isNil } from 'lodash/fp';
 import { PayloadMessageTypes } from '../../common';
 import { IRouterMixinData } from '../../mixins/mixin-router';
 import { IPayloadMessage, IUser } from '../../model';
@@ -71,7 +72,7 @@ export class TokenExpiry extends Vue {
 
             if (this.warnTimeout && seconds > this.warnTimeout)
                 this.warnHandle = window.setTimeout(() => this.warn(), ms - this.warnTimeout * 1000);
-
+            
             if (this.errorTimeout)
                 this.errorHandle = window.setTimeout(() => this.error(), tokenExpiresAt.getTime() - new Date().getTime());
         }
@@ -103,7 +104,7 @@ export class TokenExpiry extends Vue {
             messageTypeId: PayloadMessageTypes.error
         }
 
-        let logout = this.logout === undefined || this.logout === null ? true : this.logout;
+        let logout = isNil(this.logout) ? true : this.logout;
 
         if (logout)
             this.authenticationService.logout()

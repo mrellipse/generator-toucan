@@ -1,9 +1,8 @@
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
-using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 
 namespace <%=assemblyName%>.Server.Filters
 {

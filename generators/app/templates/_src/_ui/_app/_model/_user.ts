@@ -1,6 +1,21 @@
-export interface IUser {
+export const DefaultUser = <IUser>{
+    authenticated: false,
+    claims: {},
+    cultureName: "en",
+    displayName: null,
+    email: null,
+    name: null,
+    username: null,
+    roles: [],
+    timeZoneId: "AUS Eastern Standard Time",
+    verified: false
+  };
+  
+  export interface IUser {
     authenticated: boolean;
+    claims: {};
     cultureName?: string;
+    createdOn?: Date;
     displayName?: string;
     email?: string;
     enabled?: boolean;
@@ -11,9 +26,16 @@ export interface IUser {
     exp?: Date;
     userId?: number;
     timeZoneId?: string;
-}
-
-export const UserRoles = {
-    Admin: 'Admin',
-    User: 'User'
-};
+  }
+  export const SecurityRoleClaims = {
+    Admin: "admin",
+    Client: "client",
+    SiteAdmin: "siteadmin",
+    User: "user"
+  };
+  
+  export const SecurityClaims = {
+    Api: "api",
+    SiteSettings: "sitesettings",
+    UserSettings: "usersettings"
+  };  

@@ -1,4 +1,5 @@
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 
 namespace <%=assemblyName%>.Service.Model
 {

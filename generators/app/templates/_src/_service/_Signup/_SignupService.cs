@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 using <%=assemblyName%>.Data;
 using <%=assemblyName%>.Data.Model;
 
@@ -15,11 +17,13 @@ namespace <%=assemblyName%>.Service
     {
         private readonly ICryptoService crypto;
         private readonly DbContextBase db;
+        private readonly Config config;
         private readonly IDeviceProfiler deviceProfiler;
         private readonly IServiceProvider serviceProvider;
 
-        public SignupService(DbContextBase db, ICryptoService crypto, IDeviceProfiler deviceProfiler, System.IServiceProvider serviceProvider)
+        public SignupService(DbContextBase db, IOptions<Config> config, ICryptoService crypto, IDeviceProfiler deviceProfiler, System.IServiceProvider serviceProvider)
         {
+            this.config = config.Value;
             this.crypto = crypto;
             this.db = db;
             this.deviceProfiler = deviceProfiler;
@@ -28,9 +32,7 @@ namespace <%=assemblyName%>.Service
 
         public async Task<ClaimsIdentity> SignupUser(ISignupServiceOptions options)
         {
-            UserProviderLocal login = await (from p in this.db.LocalProvider.Include(o => o.User)
-                                             where p.User.Username == options.Username
-                                             select p).FirstOrDefaultAsync();
+            UserProviderLocal login = await this.db.LocalProvider.Where(o => o.User.Username == options.Username).FirstOrDefaultAsync();
 
             if (login != null)
                 throw new ServiceException($"A user account for {options.Username} already exists");
@@ -68,7 +70,7 @@ namespace <%=assemblyName%>.Service
 
             var fingerprint = this.deviceProfiler.DeriveFingerprint(user);
 
-            return user.ToClaimsIdentity(fingerprint);
+            return user.ToClaimsIdentity(this.config.ClaimsNamespace, fingerprint);
         }
 
         public async Task<ClaimsIdentity> RedeemVerificationCode(IUser user, string code)
@@ -81,14 +83,11 @@ namespace <%=assemblyName%>.Service
             {
                 if (await provider.RedeemCode(user, code))
                 {
-                    var dbUser = await (from u in this.db.User.Include(o => o.Roles)
-                        .Include(o => o.Verifications)
-                            where u.UserId == user.UserId
-                            select u).FirstOrDefaultAsync();
+                    var dbUser = await this.db.User.Where(o => o.UserId == user.UserId).FirstOrDefaultAsync();
 
                     var fingerprint = this.deviceProfiler.DeriveFingerprint(dbUser);
 
-                    return dbUser.ToClaimsIdentity(fingerprint);
+                    return dbUser.ToClaimsIdentity(this.config.ClaimsNamespace, fingerprint);
                 }
             }
 

@@ -4,13 +4,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using <%=assemblyName%>.Contract;
-using <%=assemblyName%>.Service;
+using <%=assemblyName%>.Contract.Security;
 using <%=assemblyName%>.Server.Model;
+using <%=assemblyName%>.Server.Security;
+using <%=assemblyName%>.Service;
 using <%=assemblyName%>.Service.Model;
+using <%=assemblyName%>.Service.Security;
 
 namespace <%=assemblyName%>.Server.Controllers.Admin
 {
-    [Authorize(Policy = Policies.ManagerUserAccounts)]
+    [Authorize(Roles = RoleTypes.Admin + "," + RoleTypes.SiteAdmin)]
     [Route("api/manage/user/[action]")]
     [ServiceFilter(typeof(Filters.ApiResultFilter))]
     [ServiceFilter(typeof(Filters.ApiExceptionFilter))]
@@ -18,8 +21,7 @@ namespace <%=assemblyName%>.Server.Controllers.Admin
     {
         private readonly IManageUserService manageUserService;
 
-
-        public ManageUserController(IManageUserService manageUserService,IDomainContextResolver resolver, ILocalizationService localization) : base(resolver, localization)
+        public ManageUserController(IManageUserService manageUserService, IDomainContextResolver resolver, ILocalizationService localization) : base(resolver, localization)
         {
             this.manageUserService = manageUserService;
         }

@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 using <%=assemblyName%>.Data;
 using <%=assemblyName%>.Service.Model;
 

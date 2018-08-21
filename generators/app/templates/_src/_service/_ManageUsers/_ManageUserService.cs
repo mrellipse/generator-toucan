@@ -4,7 +4,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using <%=assemblyName%>.Contract;
+using <%=assemblyName%>.Contract.Security;
 using <%=assemblyName%>.Data;
 using <%=assemblyName%>.Data.Model;
 using <%=assemblyName%>.Service.Helpers;
@@ -14,11 +16,15 @@ namespace <%=assemblyName%>.Service
 {
     public class ManageUserService : IManageUserService, IManageProfileService
     {
+        private readonly Config config;
         private readonly DbContextBase db;
+        private readonly IDeviceProfiler deviceProfiler;
 
-        public ManageUserService(DbContextBase db)
+        public ManageUserService(DbContextBase db, IOptions<Config> config, IDeviceProfiler deviceProfiler)
         {
+            this.config = config.Value;
             this.db = db;
+            this.deviceProfiler = deviceProfiler;
         }
 
         public async Task<IDictionary<string, string>> GetAvailableRoles()
@@ -33,31 +39,35 @@ namespace <%=assemblyName%>.Service
 
         public async Task<IUserExtended> ResolveUserBy(long userId)
         {
-            Data.Model.User dbUser = this.ResolveUser(userId);
+            Data.Model.User dbUser = this.db.User.SingleOrDefault(o => o.UserId == userId);
 
             return await Task.FromResult(this.MapUser(dbUser));
         }
 
         public async Task<IUserExtended> ResolveUserBy(string username)
         {
-            Data.Model.User dbUser = this.ResolveUser(username);
+            Data.Model.User dbUser = await this.db.User.Where(o => o.Username == username).SingleOrDefaultAsync();
 
-            return await Task.FromResult(this.MapUser(dbUser));
+            return this.MapUser(dbUser);
         }
 
         public Task<ISearchResult<IUserExtended>> Search(int page, int pageSize)
         {
-            var q = from u in this.db.User.Include(o => o.Roles).Include(o => o.Providers)
+            var q = from u in this.db.User
+                .Include(o => o.Roles)
+                .Include(o => o.Providers)
                     select u;
 
-            var result = (ISearchResult<IUserExtended>)new SearchResult<IUserExtended>(q.AsNoTracking(), o => MapUser(o as Data.Model.User), page, pageSize);
+            Func<object, Model.User> map = o => MapUser(o as Data.Model.User, false);
+
+            var result = (ISearchResult<IUserExtended>)new SearchResult<IUserExtended>(q.AsNoTracking(), map, page, pageSize);
 
             return Task.FromResult(result);
         }
 
         public async Task<IUserExtended> UpdateUser(IUserExtended user)
         {
-            Data.Model.User dbUser = this.ResolveUser(user.Username);
+            Data.Model.User dbUser = this.db.User.SingleOrDefault(o => o.Username == user.Username);
 
             if (dbUser == null)
                 return null;
@@ -72,9 +82,9 @@ namespace <%=assemblyName%>.Service
 
             return this.MapUser(dbUser);
         }
-        public async Task<IUserExtended> UpdateUserCulture(long userId, string cultureName, string timeZoneId)
+        async Task<IUserExtended> IManageProfileService.UpdateUserCulture(long userId, string cultureName, string timeZoneId)
         {
-            Data.Model.User dbUser = this.ResolveUser(userId);
+            Data.Model.User dbUser = this.db.User.SingleOrDefault(o => o.UserId == userId);
 
             if (dbUser == null)
                 return null;
@@ -85,9 +95,27 @@ namespace <%=assemblyName%>.Service
 
             return this.MapUser(dbUser);
         }
+
+        public async Task<ClaimsIdentity> UpdateUserCulture(long userId, string cultureName, string timeZoneId)
+        {
+            Data.Model.User dbUser = this.db.User.SingleOrDefault(o => o.UserId == userId);
+
+            if (dbUser == null)
+                return null;
+
+            new ManageUserHelper(dbUser).UpdateCulture(cultureName, timeZoneId);
+
+            await this.db.SaveChangesAsync();
+
+            string fingerprint = this.deviceProfiler.DeriveFingerprint(dbUser);
+            ClaimsIdentity identity = dbUser.ToClaimsIdentity(this.config.ClaimsNamespace, fingerprint);
+
+            return identity;
+        }
+
         public async Task<IUserExtended> UpdateUserStatus(string username, bool enabled)
         {
-            Data.Model.User dbUser = this.ResolveUser(username);
+            Data.Model.User dbUser = this.db.User.SingleOrDefault(o => o.Username == username);
 
             if (dbUser == null)
                 return null;
@@ -99,39 +127,31 @@ namespace <%=assemblyName%>.Service
             return this.MapUser(dbUser);
         }
 
-        private Data.Model.User ResolveUser(string username)
-        {
-            return this.db.User
-                .Include(o => o.Roles)
-                .Include(o => o.Providers)
-                .Include(o => o.Verifications)
-                .SingleOrDefault(o => o.Username == username);
-        }
-
-        private Data.Model.User ResolveUser(long userId)
-        {
-            return this.db.User
-                .Include(o => o.Roles)
-                .Include(o => o.Providers)
-                .Include(o => o.Verifications)
-                .SingleOrDefault(o => o.UserId == userId);
-        }
-
-        private Model.User MapUser(Data.Model.User user)
+        private Model.User MapUser(Data.Model.User user, bool mapClaims = true)
         {
             if (user == null)
+            {
                 return new Model.User();
-            else
-                return new Model.User()
-                {
-                    CultureName = user.CultureName,
-                    DisplayName = user.DisplayName,
-                    Enabled = user.Enabled,
-                    Roles = user.Roles.Select(o => o.RoleId),
-                    TimeZoneId = user.TimeZoneId,
-                    UserId = user.UserId,
-                    Username = user.Username
-                };
+            }
+
+            string[] roles = user.Roles.Select(o => o.RoleId).Distinct().ToArray();
+            string[] claims = null;
+
+            if (mapClaims)
+                claims = user.Roles.Select(o => o.Role).SelectMany(o => o.SecurityClaims).Select(o => o.SecurityClaimId).Distinct().ToArray();
+
+            return new Model.User()
+            {
+                CreatedOn = user.CreatedOn,
+                CultureName = user.CultureName,
+                DisplayName = user.DisplayName,
+                Enabled = user.Enabled,
+                Claims = claims ?? new string[] { },
+                Roles = roles,
+                TimeZoneId = user.TimeZoneId,
+                UserId = user.UserId,
+                Username = user.Username
+            };
         }
     }
 }

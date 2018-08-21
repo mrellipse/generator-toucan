@@ -40,8 +40,9 @@
                 "revokeUri": ""
             }
         ],
+        "claimsNamespace": "//<%=assemblyName.toLowerCase()%>/claims/",
         "tokenProvider": {
-            "tokenExpiration": "10",
+            "tokenExpiration": "60",
             "tokenSecurityKey": "startrekkingacrosstheuniverseonthestarshipenterpriseundercaptainkirk",
             "tokenSecurityAlgorithm": "HS256",
             "tokenIssuer": "http://<%=assemblyName%>-dev.org.au",
